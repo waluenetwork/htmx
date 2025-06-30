@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTMX vs HTMX-WASM Benchmark Comparison</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .results { margin: 10px 0; }
+        .benchmark-result { padding: 5px; margin: 5px 0; }
+        .js-result { background-color: #e3f2fd; }
+        .wasm-result { background-color: #f3e5f5; }
+        .winner { font-weight: bold; color: green; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>HTMX vs HTMX-WASM Performance Comparison</h1>
+    
+    <div class="test-section">
+        <h2>Initialization Benchmark</h2>
+        <button onclick="benchmarkInitialization()">Run Initialization Test</button>
+        <div id="init-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Element Processing Benchmark</h2>
+        <button onclick="benchmarkElementProcessing()">Run Element Processing Test</button>
+        <div id="processing-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Extension Loading Benchmark</h2>
+        <button onclick="benchmarkExtensionLoading()">Run Extension Loading Test</button>
+        <div id="extension-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>DOM Query Benchmark</h2>
+        <button onclick="benchmarkDOMQueries()">Run DOM Query Test</button>
+        <div id="query-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Memory Usage Comparison</h2>
+        <button onclick="benchmarkMemoryUsage()">Run Memory Test</button>
+        <div id="memory-results" class="results"></div>
+    </div>
+
+    <script src="https://unpkg.com/htmx.org@2.0.6"></script>
+    <script type="module">
+        import htmxWasm from './htmx-wasm-wrapper.js';
+        
+        window.htmxWasm = htmxWasm;
+        
+        await htmxWasm.init();
+        
+        window.benchmarkInitialization = async function() {
+            const results = document.getElementById('init-results');
+            results.innerHTML = '<p>Running initialization benchmark...</p>';
+            
+            const jsStart = performance.now();
+            for (let i = 0; i < 100; i++) {
+                htmx.process(document.body);
+            }
+            const jsTime = performance.now() - jsStart;
+            
+            const wasmStart = performance.now();
+            for (let i = 0; i < 100; i++) {
+                htmxWasm.process(document.body);
+            }
+            const wasmTime = performance.now() - wasmStart;
+            
+            const winner = jsTime < wasmTime ? 'JS' : 'WASM';
+            
+            results.innerHTML = `
+                <div class="benchmark-result js-result">JavaScript HTMX: ${jsTime.toFixed(2)}ms</div>
+                <div class="benchmark-result wasm-result">WASM HTMX: ${wasmTime.toFixed(2)}ms</div>
+                <div class="winner">Winner: ${winner} (${Math.abs(jsTime - wasmTime).toFixed(2)}ms faster)</div>
+            `;
+        };
+        
+        window.benchmarkElementProcessing = function() {
+            const results = document.getElementById('processing-results');
+            results.innerHTML = '<p>Running element processing benchmark...</p>';
+            
+            const testElements = [];
+            for (let i = 0; i < 1000; i++) {
+                const div = document.createElement('div');
+                div.setAttribute('hx-get', `/test/${i}`);
+                testElements.push(div);
+            }
+            
+            const jsStart = performance.now();
+            testElements.forEach(el => htmx.process(el));
+            const jsTime = performance.now() - jsStart;
+            
+            const wasmStart = performance.now();
+            testElements.forEach(el => htmxWasm.process(el));
+            const wasmTime = performance.now() - wasmStart;
+            
+            const winner = jsTime < wasmTime ? 'JS' : 'WASM';
+            
+            results.innerHTML = `
+                <div class="benchmark-result js-result">JavaScript HTMX: ${jsTime.toFixed(2)}ms (1000 elements)</div>
+                <div class="benchmark-result wasm-result">WASM HTMX: ${wasmTime.toFixed(2)}ms (1000 elements)</div>
+                <div class="winner">Winner: ${winner} (${Math.abs(jsTime - wasmTime).toFixed(2)}ms faster)</div>
+            `;
+        };
+        
+        window.benchmarkExtensionLoading = function() {
+            const results = document.getElementById('extension-results');
+            results.innerHTML = '<p>Running extension loading benchmark...</p>';
+            
+            const jsStart = performance.now();
+            htmx.defineExtension('test-js', {
+                init: function() {},
+                onEvent: function() {}
+            });
+            const jsTime = performance.now() - jsStart;
+            
+            const wasmStart = performance.now();
+            htmxWasm.defineExtension('test-wasm', {
+                wasmNative: true
+            });
+            const wasmTime = performance.now() - wasmStart;
+            
+            const winner = jsTime < wasmTime ? 'JS' : 'WASM';
+            
+            results.innerHTML = `
+                <div class="benchmark-result js-result">JavaScript Extension: ${jsTime.toFixed(2)}ms</div>
+                <div class="benchmark-result wasm-result">WASM Extension: ${wasmTime.toFixed(2)}ms</div>
+                <div class="winner">Winner: ${winner} (${Math.abs(jsTime - wasmTime).toFixed(2)}ms faster)</div>
+            `;
+        };
+        
+        window.benchmarkDOMQueries = function() {
+            const results = document.getElementById('query-results');
+            results.innerHTML = '<p>Running DOM query benchmark...</p>';
+            
+            const jsStart = performance.now();
+            for (let i = 0; i < 1000; i++) {
+                htmx.find('body');
+                htmx.findAll('div');
+            }
+            const jsTime = performance.now() - jsStart;
+            
+            const wasmStart = performance.now();
+            for (let i = 0; i < 1000; i++) {
+                htmxWasm.find('body');
+                htmxWasm.findAll('div');
+            }
+            const wasmTime = performance.now() - wasmStart;
+            
+            const winner = jsTime < wasmTime ? 'JS' : 'WASM';
+            
+            results.innerHTML = `
+                <div class="benchmark-result js-result">JavaScript Queries: ${jsTime.toFixed(2)}ms (2000 operations)</div>
+                <div class="benchmark-result wasm-result">WASM Queries: ${wasmTime.toFixed(2)}ms (2000 operations)</div>
+                <div class="winner">Winner: ${winner} (${Math.abs(jsTime - wasmTime).toFixed(2)}ms faster)</div>
+            `;
+        };
+        
+        window.benchmarkMemoryUsage = function() {
+            const results = document.getElementById('memory-results');
+            results.innerHTML = '<p>Running memory usage benchmark...</p>';
+            
+            if (performance.memory) {
+                const beforeJS = performance.memory.usedJSHeapSize;
+                
+                for (let i = 0; i < 1000; i++) {
+                    const div = document.createElement('div');
+                    div.setAttribute('hx-get', `/test/${i}`);
+                    htmx.process(div);
+                }
+                
+                const afterJS = performance.memory.usedJSHeapSize;
+                const jsMemoryDelta = afterJS - beforeJS;
+                
+                const beforeWASM = performance.memory.usedJSHeapSize;
+                
+                for (let i = 0; i < 1000; i++) {
+                    const div = document.createElement('div');
+                    div.setAttribute('hx-get', `/test/${i}`);
+                    htmxWasm.process(div);
+                }
+                
+                const afterWASM = performance.memory.usedJSHeapSize;
+                const wasmMemoryDelta = afterWASM - beforeWASM;
+                
+                const winner = jsMemoryDelta < wasmMemoryDelta ? 'JS' : 'WASM';
+                
+                results.innerHTML = `
+                    <div class="benchmark-result js-result">JavaScript Memory: ${(jsMemoryDelta / 1024).toFixed(2)} KB</div>
+                    <div class="benchmark-result wasm-result">WASM Memory: ${(wasmMemoryDelta / 1024).toFixed(2)} KB</div>
+                    <div class="winner">Winner: ${winner} (${Math.abs(jsMemoryDelta - wasmMemoryDelta) / 1024} KB difference)</div>
+                `;
+            } else {
+                results.innerHTML = '<p>Memory API not available in this browser</p>';
+            }
+        };
+    </script>
+</body>
+</html>

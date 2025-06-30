@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Single WASM Bundle Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .demo-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .messages { height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; }
+        .notification { padding: 10px; margin: 5px 0; background-color: #f0f0f0; }
+        button { padding: 10px 15px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>HTMX WASM - Single Bundle with Built-in Extensions</h1>
+    
+    <div class="demo-section">
+        <h2>WebSocket Extension Demo</h2>
+        <div ws-connect="ws://localhost:8080/chat" id="chat-container">
+            <div id="messages" class="messages">
+                <p>Connecting to WebSocket...</p>
+            </div>
+            
+            <form ws-send>
+                <input name="message" placeholder="Type your message..." required>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Server-Sent Events Extension Demo</h2>
+        <div sse-connect="/events" sse-swap="notification">
+            <div id="notifications">
+                <p>Connecting to SSE...</p>
+            </div>
+        </div>
+        
+        <button hx-post="/trigger-event" hx-target="#notifications">
+            Trigger Server Event
+        </button>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Core HTMX Functionality</h2>
+        <button hx-get="/api/data" hx-target="#data-container" hx-swap="innerHTML">
+            Load Data
+        </button>
+        
+        <div id="data-container">
+            <p>Click the button to load data</p>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Performance Monitor</h2>
+        <div id="performance-stats">
+            <p>Extension loading time: <span id="load-time">-</span>ms</p>
+            <p>Memory usage: <span id="memory-usage">-</span>KB</p>
+            <p>Active connections: <span id="active-connections">0</span></p>
+        </div>
+        
+        <button onclick="updatePerformanceStats()">Update Stats</button>
+    </div>
+
+    <script type="module">
+        import htmxWasm from '../htmx-wasm-wrapper.js';
+        
+        const startTime = performance.now();
+        
+        await htmxWasm.init();
+        
+        htmxWasm.defineExtension('ws', { wasmNative: true });
+        htmxWasm.defineExtension('sse', { wasmNative: true });
+        
+        const loadTime = performance.now() - startTime;
+        document.getElementById('load-time').textContent = loadTime.toFixed(2);
+        
+        console.log('HTMX WASM with built-in extensions loaded in', loadTime, 'ms');
+        
+        window.updatePerformanceStats = function() {
+            if (performance.memory) {
+                const memoryUsage = (performance.memory.usedJSHeapSize / 1024).toFixed(2);
+                document.getElementById('memory-usage').textContent = memoryUsage;
+            }
+            
+            const connections = document.querySelectorAll('[ws-connect], [sse-connect]').length;
+            document.getElementById('active-connections').textContent = connections;
+        };
+        
+        htmx.on('htmx:wsOpen', function(evt) {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += '<div class="notification">WebSocket connected!</div>';
+            messages.scrollTop = messages.scrollHeight;
+        });
+        
+        htmx.on('htmx:wsMessage', function(evt) {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `<div class="notification">Received: ${evt.detail.message}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        });
+        
+        htmx.on('htmx:sseMessage', function(evt) {
+            const notifications = document.getElementById('notifications');
+            notifications.innerHTML += `<div class="notification">SSE: ${evt.detail.data}</div>`;
+        });
+        
+        updatePerformanceStats();
+        setInterval(updatePerformanceStats, 5000);
+    </script>
+</body>
+</html>

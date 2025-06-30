@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Extensions Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .demo-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .status { padding: 10px; margin: 10px 0; background: #f0f0f0; }
+        button { padding: 8px 16px; margin: 5px; }
+        .loading { opacity: 0.5; background-color: #f0f0f0; }
+        .loading button { cursor: not-allowed; }
+        #template-result, #loading-result { min-height: 100px; border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>HTMX WASM - JavaScript Extensions Demo</h1>
+    
+    <div class="status" id="status">Loading JavaScript extensions...</div>
+    
+    <div class="demo-section">
+        <h2>Client-Side Templates Extension</h2>
+        <div hx-get="/api/data" 
+             hx-target="#template-result"
+             mustache-template="data-template">
+            <button>Load Data with Mustache Template</button>
+        </div>
+        <div id="template-result"></div>
+        
+        <script id="data-template" type="x-tmpl-mustache">
+            <h3>Template Rendered Data:</h3>
+            <ul>
+            {{#items}}
+                <li><strong>{{name}}</strong>: {{value}} ({{type}})</li>
+            {{/items}}
+            </ul>
+            <p>Generated at: {{timestamp}}</p>
+        </script>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Loading States Extension</h2>
+        <div hx-get="/api/slow-data"
+             hx-target="#loading-result"
+             data-loading-class="loading"
+             data-loading-disable
+             data-loading-aria-busy="true">
+            <button>Load with Loading States</button>
+        </div>
+        <div id="loading-result"></div>
+    </div>
+    
+    <script type="module">
+        import init, { HtmxWasm } from '../pkg/htmx_wasm.js';
+        import htmxWasm from '../htmx-wasm-wrapper.js';
+        
+        // Mock Mustache for template rendering
+        window.Mustache = {
+            render: function(template, data) {
+                let result = template;
+                
+                // Simple mustache-like template rendering
+                if (data.items && Array.isArray(data.items)) {
+                    const itemsHtml = data.items.map(item => 
+                        `<li><strong>${item.name}</strong>: ${item.value} (${item.type})</li>`
+                    ).join('');
+                    result = result.replace(/\{\{#items\}\}[\s\S]*?\{\{\/items\}\}/g, itemsHtml);
+                }
+                
+                // Replace other variables
+                result = result.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                    return data[key] || match;
+                });
+                
+                return result;
+            }
+        };
+        
+        async function initHtmxWithJSExtensions() {
+            try {
+                // Initialize WASM wrapper (this sets up global htmx)
+                await htmxWasm.init();
+                
+                document.getElementById('status').textContent = 'Core WASM loaded, loading JavaScript extensions...';
+                
+                // Load JavaScript extensions (now htmx global is available)
+                await import('../js-extensions/client-side-templates.js');
+                await import('../js-extensions/loading-states.js');
+                
+                // Mock API endpoints for testing
+                setupMockAPI();
+                
+                // Process all elements using the wrapper
+                document.querySelectorAll('[hx-get]').forEach(element => {
+                    htmxWasm.process(element);
+                });
+                
+                document.getElementById('status').textContent = 'JavaScript extensions loaded successfully!';
+                console.log('HTMX WASM with JavaScript extensions initialized');
+                
+            } catch (error) {
+                console.error('Failed to initialize JavaScript extensions:', error);
+                document.getElementById('status').textContent = 'Error loading extensions: ' + error.message;
+            }
+        }
+        
+        function setupMockAPI() {
+            // Mock API responses for testing
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (url === '/api/data') {
+                    return Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        text: () => Promise.resolve(JSON.stringify({
+                            items: [
+                                { name: 'Item 1', value: 'Value A', type: 'String' },
+                                { name: 'Item 2', value: '42', type: 'Number' },
+                                { name: 'Item 3', value: 'true', type: 'Boolean' }
+                            ],
+                            timestamp: new Date().toLocaleString()
+                        }))
+                    });
+                } else if (url === '/api/slow-data') {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({
+                                ok: true,
+                                status: 200,
+                                text: () => Promise.resolve('<p>Slow data loaded successfully at ' + new Date().toLocaleTimeString() + '</p>')
+                            });
+                        }, 2000);
+                    });
+                }
+                return originalFetch.apply(this, arguments);
+            };
+        }
+        
+        initHtmxWithJSExtensions();
+    </script>
+</body>
+</html>

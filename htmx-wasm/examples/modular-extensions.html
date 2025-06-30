@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modular WASM Extensions Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .demo-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .status { padding: 10px; margin: 10px 0; background: #f0f0f0; }
+        button { padding: 8px 16px; margin: 5px; }
+        #messages, #notifications { min-height: 100px; border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>HTMX WASM - Modular Extensions Demo</h1>
+    
+    <div class="status" id="status">Loading modular extensions...</div>
+    
+    <div class="demo-section">
+        <h2>WebSocket Extension (Modular WASM)</h2>
+        <div ws-connect="ws://localhost:8080/chatroom">
+            <div id="messages"></div>
+            <form ws-send>
+                <input name="message" placeholder="Type a message..." required>
+                <button type="submit">Send via WebSocket</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>SSE Extension (Modular WASM)</h2>
+        <div sse-connect="http://localhost:8080/events" sse-swap="message">
+            <div id="notifications"></div>
+        </div>
+        <button onclick="simulateSSEEvent()">Simulate SSE Event</button>
+    </div>
+    
+    <script type="module">
+        import init, { HtmxWasm } from '../pkg/htmx_wasm.js';
+        
+        async function initHtmxWithModularExtensions() {
+            try {
+                // Initialize core WASM
+                await init();
+                const htmxWasm = new HtmxWasm();
+                
+                document.getElementById('status').textContent = 'Core WASM loaded, loading modular extensions...';
+                
+                // Load modular WebSocket extension
+                const wsModule = await import('../extensions/websocket-module/pkg/htmx_websocket_extension.js');
+                await wsModule.default();
+                const wsExtension = new wsModule.WebSocketExtensionModule();
+                wsExtension.register_with_core(htmxWasm);
+                
+                // Load modular SSE extension
+                const sseModule = await import('../extensions/sse-module/pkg/htmx_sse_extension.js');
+                await sseModule.default();
+                const sseExtension = new sseModule.SSEExtensionModule();
+                sseExtension.register_with_core(htmxWasm);
+                
+                // Process all elements
+                document.querySelectorAll('[ws-connect], [sse-connect]').forEach(element => {
+                    htmxWasm.process_element(element);
+                });
+                
+                document.getElementById('status').textContent = 'Modular WASM extensions loaded successfully!';
+                console.log('HTMX WASM with modular extensions initialized');
+                
+            } catch (error) {
+                console.error('Failed to initialize modular extensions:', error);
+                document.getElementById('status').textContent = 'Error loading extensions: ' + error.message;
+            }
+        }
+        
+        // Simulate SSE event for testing
+        window.simulateSSEEvent = function() {
+            const event = new CustomEvent('sse-message', {
+                detail: { data: '<p>Simulated SSE event at ' + new Date().toLocaleTimeString() + '</p>' }
+            });
+            document.querySelector('[sse-connect]').dispatchEvent(event);
+        };
+        
+        initHtmxWithModularExtensions();
+    </script>
+</body>
+</html>

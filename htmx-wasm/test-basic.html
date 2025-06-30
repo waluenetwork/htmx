@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic HTMX WASM Test</title>
+</head>
+<body>
+    <h1>HTMX WASM Basic Test</h1>
+    
+    <div id="test-area">
+        <button hx-get="/api/test" hx-target="#result">Test HTMX WASM</button>
+        <div id="result"></div>
+    </div>
+    
+    <script type="module">
+        import init, { HtmxWasm } from './pkg/htmx_wasm.js';
+        
+        async function initHtmx() {
+            try {
+                await init();
+                const htmxWasm = new HtmxWasm();
+                
+                // Test basic element processing
+                const button = document.querySelector('button[hx-get]');
+                if (button) {
+                    htmxWasm.process_element(button);
+                    console.log('HTMX WASM initialized and element processed successfully');
+                }
+                
+                // Enable built-in extensions
+                htmxWasm.enable_extension('ws');
+                htmxWasm.enable_extension('sse');
+                console.log('Built-in extensions enabled');
+                
+            } catch (error) {
+                console.error('Failed to initialize HTMX WASM:', error);
+            }
+        }
+        
+        initHtmx();
+    </script>
+</body>
+</html>
