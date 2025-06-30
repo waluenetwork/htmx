@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-06-30T12:48:42.534518",
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "test": "websocket_connection",
+      "status": "PASS",
+      "details": "WebSocket connection established and welcome message received"
+    },
+    {
+      "test": "websocket_message_format",
+      "status": "PASS",
+      "details": "WebSocket messages follow HTMX protocol format"
+    },
+    {
+      "test": "sse_health",
+      "status": "PASS",
+      "details": "SSE health endpoint responding correctly"
+    },
+    {
+      "test": "sse_connection",
+      "status": "PASS",
+      "details": "SSE connection established, received 2 events"
+    },
+    {
+      "test": "sse_message_format",
+      "status": "PASS",
+      "details": "SSE messages follow HTMX protocol format"
+    }
+  ],
+  "server_ports": {
+    "WS_PORT": 48811,
+    "SSE_PORT": 38691,
+    "HTTP_PORT": 45947
+  }
+}

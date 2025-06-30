@@ -1,6 +1,6 @@
 use wasm_bindgen_test::*;
 use wasm_bindgen::prelude::*;
-use web_sys::{Document, Element, HtmlElement, Event, CustomEvent};
+use web_sys::CustomEvent;
 use htmx_wasm::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -188,7 +188,7 @@ fn test_event_propagation() {
 
 #[wasm_bindgen_test]
 fn test_form_data_collection() {
-    let mut htmx = HtmxWasm::new();
+    let htmx = HtmxWasm::new();
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     

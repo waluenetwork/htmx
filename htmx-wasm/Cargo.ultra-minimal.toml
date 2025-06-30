@@ -1,0 +1,26 @@
+[package]
+name = "htmx-wasm-ultra-minimal"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/ultra_minimal.rs"
+
+[dependencies]
+wasm-bindgen = { version = "0.2", default-features = false }
+web-sys = { version = "0.3", default-features = false, features = ["console", "Element"] }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+debug = false
+overflow-checks = false
+
+[profile.release.package."*"]
+opt-level = "z"
+debug = false
+strip = "symbols"

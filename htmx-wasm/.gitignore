@@ -1,0 +1,19 @@
+# Build artifacts
+target/
+pkg/
+*.wasm
+*.js.map
+Cargo.lock
+node_modules/
+dist/
+
+# Temporary files
+*.tmp
+*.log
+available_ports.txt
+performance_results.json
+real_server_integration_results.json
+
+# Backup files
+*.backup
+*.bak

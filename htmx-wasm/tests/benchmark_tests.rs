@@ -1,7 +1,6 @@
 use wasm_bindgen_test::*;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
-use std::time::Instant;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -67,7 +66,7 @@ fn benchmark_extension_loading() {
 
 #[wasm_bindgen_test]
 fn benchmark_dom_queries() {
-    let mut htmx = htmx_wasm::HtmxWasm::new();
+    let htmx = htmx_wasm::HtmxWasm::new();
     
     let start_time = now();
     
@@ -84,7 +83,7 @@ fn benchmark_dom_queries() {
 
 #[wasm_bindgen_test]
 fn benchmark_event_triggering() {
-    let mut htmx = htmx_wasm::HtmxWasm::new();
+    let htmx = htmx_wasm::HtmxWasm::new();
     
     let window = window().unwrap();
     let document = window.document().unwrap();

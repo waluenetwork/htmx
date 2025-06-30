@@ -1,0 +1,22 @@
+{
+  "bundle_sizes": {
+    "wasm_binary_kb": 0.0,
+    "js_bindings_kb": 40.52734375,
+    "total_wasm_kb": 40.52734375,
+    "original_htmx_kb": 49.8115234375,
+    "size_ratio": 0.8136138177112945
+  },
+  "build_times": {
+    "single_bundle": 2.6763694286346436,
+    "websocket_module": 1.1004180908203125,
+    "sse_module": 1.1424839496612549
+  },
+  "extension_sizes": {
+    "js_websocket_kb": 13.5732421875,
+    "js_sse_kb": 10.078125
+  },
+  "compilation": {
+    "full_build_time": 14.709172248840332,
+    "incremental_build_time": 0.06659722328186035
+  }
+}
