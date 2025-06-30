@@ -55,13 +55,97 @@ impl ExtensionRegistry {
         match name {
             #[cfg(feature = "websocket")]
             "ws" => {
-                self.websocket = Some(Box::new(WebSocketExtension::new()));
+                let mut extension = Box::new(WebSocketExtension::new());
+                
+                let api = HtmxApi {
+                    find: |selector| {
+                        if let Some(window) = web_sys::window() {
+                            if let Some(document) = window.document() {
+                                if let Ok(Some(element)) = document.query_selector(selector) {
+                                    return element.dyn_into::<Element>().ok();
+                                }
+                            }
+                        }
+                        None
+                    },
+                    find_all: |selector| {
+                        let mut elements = Vec::new();
+                        if let Some(window) = web_sys::window() {
+                            if let Some(document) = window.document() {
+                                if let Ok(node_list) = document.query_selector_all(selector) {
+                                    for i in 0..node_list.length() {
+                                        if let Some(node) = node_list.get(i) {
+                                            if let Ok(element) = node.dyn_into::<Element>() {
+                                                elements.push(element);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        elements
+                    },
+                    trigger_event: |element, event_name, detail| {
+                        let event = web_sys::CustomEvent::new_with_event_init_dict(
+                            event_name,
+                            web_sys::CustomEventInit::new().detail(detail)
+                        )?;
+                        element.dispatch_event(&event)?;
+                        Ok(())
+                    },
+                };
+                
+                extension.init(&api)?;
+                
+                self.websocket = Some(extension);
                 self.enabled_extensions.insert(name.to_string());
                 Ok(())
             },
             #[cfg(feature = "sse")]
             "sse" => {
-                self.sse = Some(Box::new(SSEExtension::new()));
+                let mut extension = Box::new(SSEExtension::new());
+                
+                let api = HtmxApi {
+                    find: |selector| {
+                        if let Some(window) = web_sys::window() {
+                            if let Some(document) = window.document() {
+                                if let Ok(Some(element)) = document.query_selector(selector) {
+                                    return element.dyn_into::<Element>().ok();
+                                }
+                            }
+                        }
+                        None
+                    },
+                    find_all: |selector| {
+                        let mut elements = Vec::new();
+                        if let Some(window) = web_sys::window() {
+                            if let Some(document) = window.document() {
+                                if let Ok(node_list) = document.query_selector_all(selector) {
+                                    for i in 0..node_list.length() {
+                                        if let Some(node) = node_list.get(i) {
+                                            if let Ok(element) = node.dyn_into::<Element>() {
+                                                elements.push(element);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        elements
+                    },
+                    trigger_event: |element, event_name, detail| {
+                        let event = web_sys::CustomEvent::new_with_event_init_dict(
+                            event_name,
+                            web_sys::CustomEventInit::new().detail(detail)
+                        )?;
+                        element.dispatch_event(&event)?;
+                        Ok(())
+                    },
+                };
+                
+                extension.init(&api)?;
+                
+                self.sse = Some(extension);
                 self.enabled_extensions.insert(name.to_string());
                 Ok(())
             },
