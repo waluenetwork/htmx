@@ -1,16 +1,31 @@
 use wasm_bindgen::prelude::*;
+
+#[cfg(feature = "ultra-minimal")]
+mod ultra_minimal_core;
+
+#[cfg(feature = "ultra-minimal")]
+pub use ultra_minimal_core::*;
+
+#[cfg(not(feature = "ultra-minimal"))]
 use web_sys::Element;
+#[cfg(not(feature = "ultra-minimal"))]
 use std::collections::HashMap;
 
-
+#[cfg(not(feature = "ultra-minimal"))]
 mod core;
+#[cfg(not(feature = "ultra-minimal"))]
 mod extensions;
+#[cfg(not(feature = "ultra-minimal"))]
 mod js_bridge;
 
+#[cfg(not(feature = "ultra-minimal"))]
 pub use core::*;
+#[cfg(not(feature = "ultra-minimal"))]
 pub use extensions::*;
+#[cfg(not(feature = "ultra-minimal"))]
 pub use js_bridge::*;
 
+#[cfg(not(feature = "ultra-minimal"))]
 #[wasm_bindgen]
 pub struct HtmxWasm {
     core: HtmxCore,
@@ -18,6 +33,7 @@ pub struct HtmxWasm {
     js_extensions: HashMap<String, JsValue>,
 }
 
+#[cfg(not(feature = "ultra-minimal"))]
 #[wasm_bindgen]
 impl HtmxWasm {
     #[wasm_bindgen(constructor)]

@@ -4,35 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2"
-console_error_panic_hook = "0.1"
-web-sys = { version = "0.3", features = [
-  "console", "Document", "Element", "Event", "EventTarget", "HtmlElement",
-  "HtmlFormElement", "HtmlInputElement", "WebSocket", "EventSource", 
-  "MessageEvent", "CloseEvent", "ErrorEvent", "CustomEvent", "CustomEventInit", 
-  "XmlHttpRequest", "FormData", "Node", "Window", "NodeList", "DocumentFragment"
+wasm-bindgen = { version = "0.2", default-features = false }
+web-sys = { version = "0.3", default-features = false, features = [
+  "console", "Document", "Element", "Event", "EventTarget", "HtmlElement"
 ]}
-js-sys = "0.3"
-urlencoding = "2.1"
-
-[features]
-default = ["websocket", "sse"]
-websocket = []
-sse = []
-all-extensions = ["websocket", "sse"]
+js-sys = { version = "0.3", default-features = false }
+wee_alloc = { version = "0.4", optional = true }
 
 [profile.release]
 opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"
-strip = true
+strip = "symbols"
 
 [profile.release.package."*"]
 opt-level = "z"
 
-[dev-dependencies]
-wasm-bindgen-test = "0.3"
+[features]
+default = []
+wee_alloc = ["dep:wee_alloc"]
+ultra-minimal = []
