@@ -1,0 +1,65 @@
+{
+  "name": "htmx-wasm",
+  "version": "0.1.0",
+  "description": "Rust + WebAssembly implementation of htmx with 3-modal extension architecture",
+  "main": "pkg/htmx_wasm.js",
+  "types": "pkg/htmx_wasm.d.ts",
+  "files": [
+    "pkg/",
+    "js-extensions/",
+    "htmx-wasm-wrapper.js",
+    "examples/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "./build.sh",
+    "build:single": "wasm-pack build --target web --features all-extensions",
+    "build:modular": "cd extensions/websocket-module && wasm-pack build --target web && cd ../sse-module && wasm-pack build --target web",
+    "test": "wasm-pack test --headless --firefox",
+    "test:node": "wasm-pack test --node",
+    "test:integration": "python3 tests/server_integration_tests.py",
+    "benchmark": "python3 tests/performance_benchmarks.py",
+    "serve": "python3 -m http.server 8080",
+    "dev": "python3 test-server.py"
+  },
+  "keywords": [
+    "htmx",
+    "wasm",
+    "webassembly",
+    "rust",
+    "websocket",
+    "sse",
+    "extensions",
+    "dom",
+    "ajax"
+  ],
+  "author": "waluenetwork",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waluenetwork/htmx.git",
+    "directory": "htmx-wasm"
+  },
+  "bugs": {
+    "url": "https://github.com/waluenetwork/htmx/issues"
+  },
+  "homepage": "https://github.com/waluenetwork/htmx/tree/master/htmx-wasm",
+  "dependencies": {},
+  "devDependencies": {
+    "wasm-pack": "^0.12.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browser": {
+    "./pkg/htmx_wasm.js": "./htmx-wasm-wrapper.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./htmx-wasm-wrapper.js",
+      "require": "./pkg/htmx_wasm.js"
+    },
+    "./pkg/*": "./pkg/*",
+    "./js-extensions/*": "./js-extensions/*"
+  }
+}

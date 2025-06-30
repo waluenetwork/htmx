@@ -4,27 +4,35 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen = "0.2"
 console_error_panic_hook = "0.1"
 web-sys = { version = "0.3", features = [
   "console", "Document", "Element", "Event", "EventTarget", "HtmlElement",
-  "WebSocket", "EventSource", "MessageEvent", "CloseEvent", "ErrorEvent",
-  "CustomEvent", "CustomEventInit", "XmlHttpRequest", "FormData", "Url", "UrlSearchParams",
-  "DocumentFragment", "Node", "Window", "History", "Location", "NodeList"
+  "HtmlFormElement", "HtmlInputElement", "WebSocket", "EventSource", 
+  "MessageEvent", "CloseEvent", "ErrorEvent", "CustomEvent", "CustomEventInit", 
+  "XmlHttpRequest", "FormData", "Node", "Window", "NodeList", "DocumentFragment"
 ]}
 js-sys = "0.3"
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.4"
-wasm-bindgen-futures = "0.4"
+urlencoding = "2.1"
 
 [features]
 default = ["websocket", "sse"]
 websocket = []
 sse = []
 all-extensions = ["websocket", "sse"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.release.package."*"]
+opt-level = "z"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
