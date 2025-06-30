@@ -4,7 +4,7 @@ set -e
 echo "🚀 Building HTMX WASM Multi-Extension Architecture..."
 
 echo "📦 Building single WASM bundle with built-in extensions..."
-wasm-pack build --target web --features all-extensions
+wasm-pack build --target web --features websocket,sse
 
 echo "🔌 Building modular WebSocket extension..."
 cd extensions/websocket-module
@@ -19,6 +19,9 @@ cd ../..
 echo "📋 Copying JavaScript extensions..."
 mkdir -p pkg/js-extensions
 cp js-extensions/*.js pkg/js-extensions/
+
+echo "📦 Building minimal WASM bundle..."
+wasm-pack build --target web --out-dir pkg-minimal --features ultra-minimal
 
 echo "📄 Copying examples..."
 cp examples/*.html pkg/

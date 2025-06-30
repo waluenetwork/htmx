@@ -2,6 +2,133 @@
 
 A high-performance Rust + WebAssembly implementation of htmx that provides 100% API compatibility with the original JavaScript library while offering significant performance improvements.
 
+## 🚀 Quick Start (Production Release)
+
+### 1. Download Production Release
+```bash
+# Download the latest production release
+wget https://github.com/waluenetwork/htmx/releases/download/v0.1.0/htmx-wasm-production-v0.1.0.tar.gz
+
+# Extract files
+tar -xzf htmx-wasm-production-v0.1.0.tar.gz
+cd htmx-wasm-production-v0.1.0/
+
+# Verify contents
+ls -la
+# Should show: htmx_wasm.js, htmx_wasm_minimal.js, production-server.py, examples, guides
+```
+
+### 2. Start the Production Server
+```bash
+# Install Python dependencies (required for WebSocket functionality)
+pip install websockets
+
+# Start the production server (serves both HTTP and WebSocket)
+python3 production-server.py
+```
+
+**Expected Server Output:**
+```
+🚀 Starting HTMX WASM Production Server
+============================================================
+📍 HTTP Server: http://localhost:8080
+📍 WebSocket Server: ws://localhost:8081
+📍 SSE Endpoint: http://localhost:8080/events
+📍 API Endpoints: http://localhost:8080/api/*
+============================================================
+🔗 Test URLs:
+   Single Bundle: http://localhost:8080/single-bundle-fixed.html
+   Minimal Bundle: http://localhost:8080/minimal-bundle-fixed.html
+============================================================
+```
+
+**Server Configuration:**
+- **HTTP Server**: http://localhost:8080 (serves static files, API endpoints, SSE)
+- **WebSocket Server**: ws://localhost:8081 (real-time messaging)
+- **API Endpoints**: `/api/data`, `/api/test`, `/api/slow-data`
+- **SSE Endpoint**: `/events` (server-sent events)
+- **Manual Events**: `/trigger-event` (trigger custom events)
+
+### 3. Test the Examples
+Open your browser and navigate to:
+- **Single Bundle (71KB)**: http://localhost:8080/single-bundle-fixed.html
+- **Minimal Bundle (8.7KB)**: http://localhost:8080/minimal-bundle-fixed.html
+
+**What Each Example Demonstrates:**
+
+**Single Bundle Example:**
+- ✅ **WebSocket Chat**: Real-time messaging with echo responses
+- ✅ **Server-Sent Events**: Automatic updates every 2 seconds
+- ✅ **API Calls**: GET/POST requests with HTMX attributes
+- ✅ **Performance Monitoring**: Load time, memory usage, active connections
+- ✅ **Built-in Extensions**: WebSocket and SSE extensions included
+
+**Minimal Bundle Example:**
+- ✅ **Core HTMX Features**: HTTP verbs, targeting, form serialization
+- ✅ **API Integration**: GET/POST requests to test endpoints
+- ✅ **Lightweight**: Only 8.7KB bundle size
+- ❌ **No Extensions**: WebSocket and SSE not included in minimal build
+
+**Testing Checklist:**
+1. ✅ WASM module loads without errors
+2. ✅ WebSocket connection establishes (single bundle only)
+3. ✅ SSE events stream automatically (single bundle only)  
+4. ✅ API buttons load data successfully
+5. ✅ Chat messages echo back (single bundle only)
+6. ✅ Performance stats update correctly
+
+**Troubleshooting:**
+- **WebSocket connection fails**: Install `pip install websockets`
+- **Examples don't load**: Check browser console for WASM errors, ensure files served correctly
+- **Server won't start**: Check ports 8080/8081 are available (`netstat -an | grep 808`)
+- **CORS errors**: Server includes proper CORS headers automatically
+- **WASM module fails**: Verify browser supports WebAssembly, check Network tab for 404s
+- **Import errors**: Ensure using correct import paths (`./htmx_wasm.js` for single, `./htmx_wasm_minimal.js` for minimal)
+
+**Quick Debugging:**
+```bash
+# Test HTTP server
+curl http://localhost:8080/api/test
+
+# Test SSE endpoint  
+curl http://localhost:8080/events
+
+# Check WebSocket port
+netstat -an | grep 8081
+```
+
+### 4. Integration in Your Project
+
+#### Single Bundle (Recommended)
+```html
+<script type="module">
+  import init, { HtmxWasm } from './htmx_wasm.js';
+  
+  await init();
+  const htmx = new HtmxWasm();
+  window.htmx = htmx;
+  
+  // Enable built-in extensions
+  htmx.enable_extension('ws');
+  htmx.enable_extension('sse');
+</script>
+```
+
+#### Minimal Bundle (8.7KB)
+```html
+<script type="module">
+  import init, { HtmxWasm } from './htmx_wasm_minimal.js';
+  
+  await init();
+  const htmx = new HtmxWasm();
+  window.htmx = htmx;
+  
+  // Note: WebSocket and SSE extensions not included in minimal build
+</script>
+```
+
+---
+
 ## 🚀 Features
 
 - **100% htmx API Compatibility**: Drop-in replacement for htmx.js
@@ -381,6 +508,12 @@ MIT License - see LICENSE file for details.
 # Download production builds
 curl -L https://github.com/waluenetwork/htmx/releases/download/v0.1.0/htmx-wasm-production-v0.1.0.tar.gz -o htmx-wasm.tar.gz
 tar -xzf htmx-wasm.tar.gz
+cd htmx-wasm-production-v0.1.0/
+
+# Quick test
+pip install websockets
+python3 production-server.py
+# Open: http://localhost:8080/single-bundle-fixed.html
 ```
 
 **Individual Downloads:**

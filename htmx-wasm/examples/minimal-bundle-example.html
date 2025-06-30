@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTMX WASM - Minimal Bundle Example (8.7KB)</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .demo-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .demo-section h2 {
+            color: #333;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+        }
+        button { 
+            padding: 12px 20px; 
+            margin: 5px; 
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .size-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .size-highlight .size {
+            font-size: 36px;
+            font-weight: bold;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 HTMX WASM - Minimal Bundle Example</h1>
+        
+        <div class="size-highlight">
+            <div class="size">8.7KB</div>
+            <div>Ultra-lightweight WASM bundle - Core functionality only</div>
+        </div>
+        
+        <div id="initialization-status" class="status info">
+            🔄 Initializing minimal HTMX WASM...
+        </div>
+        
+        <div class="demo-section">
+            <h2>⚡ Core HTMX Functionality</h2>
+            <p>This minimal build includes only the essential htmx features:</p>
+            <ul>
+                <li>HTTP verbs (GET, POST, PUT, DELETE, PATCH)</li>
+                <li>Element targeting and swapping</li>
+                <li>Form serialization</li>
+                <li>Event handling</li>
+            </ul>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button hx-get="http://localhost:8080/api/data" hx-target="#data-container" hx-swap="innerHTML">
+                    📊 Load Data (GET)
+                </button>
+                <button hx-post="http://localhost:8080/api/test" hx-target="#data-container" hx-swap="innerHTML">
+                    🧪 API Test (POST)
+                </button>
+            </div>
+            
+            <div id="data-container" style="margin-top: 15px; padding: 15px; background: white; border-radius: 4px; min-height: 50px;">
+                <p>👆 Click any button above to test core HTMX functionality</p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📊 Bundle Information</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;">8.7KB</div>
+                    <div>Bundle Size</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="load-time">-</div>
+                    <div>Load Time (ms)</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;">✅</div>
+                    <div>Under 15KB Target</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🚫 Not Included in Minimal Build</h2>
+            <p>The following features are <strong>not available</strong> in the minimal build:</p>
+            <ul>
+                <li>❌ WebSocket extension</li>
+                <li>❌ Server-Sent Events extension</li>
+                <li>❌ JavaScript extension bridge</li>
+                <li>❌ Advanced debugging features</li>
+            </ul>
+            <p><em>Use the single bundle (71KB) if you need these features.</em></p>
+        </div>
+    </div>
+
+    <script type="module">
+        console.log('🎯 Starting HTMX WASM Minimal Bundle Example');
+        
+        const startTime = performance.now();
+        const statusEl = document.getElementById('initialization-status');
+        
+        try {
+            // Import the minimal bundle WASM module
+            const { default: init, HtmxCore } = await import('./minimal/htmx_wasm.js');
+            
+            // Initialize WASM
+            await init();
+            console.log('✅ Minimal WASM module initialized');
+            
+            // Create HTMX core instance
+            const htmx = new HtmxCore();
+            window.htmx = htmx;
+            
+            const loadTime = performance.now() - startTime;
+            document.getElementById('load-time').textContent = loadTime.toFixed(2);
+            
+            statusEl.className = 'status success';
+            statusEl.innerHTML = `✅ Minimal HTMX WASM initialized successfully in ${loadTime.toFixed(2)}ms`;
+            
+            console.log('✅ Minimal HTMX WASM loaded in', loadTime.toFixed(2), 'ms');
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize minimal HTMX WASM:', error);
+            statusEl.className = 'status error';
+            statusEl.innerHTML = `❌ Failed to initialize minimal HTMX WASM: ${error.message}`;
+        }
+    </script>
+</body>
+</html>

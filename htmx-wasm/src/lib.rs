@@ -41,10 +41,30 @@ impl HtmxWasm {
         #[cfg(feature = "console_error_panic_hook")]
         console_error_panic_hook::set_once();
         
-        HtmxWasm {
+        let instance = HtmxWasm {
             core: HtmxCore::new(),
             extension_registry: ExtensionRegistry::new(),
             js_extensions: HashMap::new(),
+        };
+        
+        instance.scan_dom();
+        
+        instance
+    }
+    
+    pub fn scan_dom(&self) {
+        if let Some(window) = web_sys::window() {
+            if let Some(document) = window.document() {
+                if let Ok(elements) = document.query_selector_all("[hx-get], [hx-post], [hx-put], [hx-delete], [hx-patch]") {
+                    for i in 0..elements.length() {
+                        if let Some(element) = elements.get(i) {
+                            if let Ok(el) = element.dyn_into::<Element>() {
+                                let _ = self.core.process_element(&el);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -115,8 +135,7 @@ impl HtmxWasm {
     pub fn call_js_extension_hook(&self, ext_name: &str, hook: &str, args: &JsValue) -> Result<JsValue, JsValue> {
         if let Some(extension) = self.js_extensions.get(ext_name) {
             let hook_fn = js_sys::Reflect::get(extension, &JsValue::from_str(hook))?;
-            if hook_fn.is_function() {
-                let func = hook_fn.dyn_into::<js_sys::Function>()?;
+            if let Ok(func) = hook_fn.dyn_into::<js_sys::Function>() {
                 func.call1(extension, args)
             } else {
                 Ok(JsValue::UNDEFINED)
