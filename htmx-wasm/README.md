@@ -15,12 +15,51 @@ A high-performance Rust + WebAssembly implementation of htmx that provides 100% 
 
 ## 📦 Installation
 
-### NPM
+### Production Releases (Recommended)
+
+Download the latest production builds from GitHub Releases:
+
+**Latest Release:** [v0.1.0](https://github.com/waluenetwork/htmx/releases/tag/v0.1.0)
+
+```bash
+# Download and extract production builds
+wget https://github.com/waluenetwork/htmx/releases/download/v0.1.0/htmx-wasm-production-v0.1.0.tar.gz
+tar -xzf htmx-wasm-production-v0.1.0.tar.gz
+```
+
+**Single WASM Bundle (Recommended):**
+```html
+<script type="module">
+  import init, { HtmxWasm } from './single-bundle/htmx_wasm.js';
+  await init();
+  const htmx = new HtmxWasm();
+</script>
+```
+
+**Minimal WASM Bundle (≤15KB):**
+```html
+<script type="module">
+  import init, { HtmxCore } from './minimal/htmx_wasm.js';
+  await init();
+  const htmx = new HtmxCore();
+</script>
+```
+
+**Modular Extensions:**
+```html
+<script type="module">
+  import './htmx-wasm-wrapper.js';
+  await htmxWasm.loadWasmExtension('ws', './websocket-extension/htmx_websocket_extension.js');
+  await htmxWasm.loadWasmExtension('sse', './sse-extension/htmx_sse_extension.js');
+</script>
+```
+
+### NPM (Development)
 ```bash
 npm install htmx-wasm
 ```
 
-### CDN
+### CDN (Development)
 ```html
 <script type="module">
   import htmxWasm from 'https://unpkg.com/htmx-wasm/pkg/htmx_wasm.js';
@@ -322,6 +361,54 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Status**: 🚧 Active Development - Bundle size optimization in progress
+## 🚀 Production Releases
+
+### Available Builds
+
+| Build Type | Size | Features | Use Case |
+|------------|------|----------|----------|
+| **Single Bundle** | 71KB | All extensions built-in | General purpose, drop-in replacement |
+| **Minimal Bundle** | 8.7KB | Core only | Size-critical applications (✅ under 15KB target) |
+| **Modular WebSocket** | 34KB | WebSocket extension only | Specific WebSocket needs |
+| **Modular SSE** | 35KB | SSE extension only | Specific SSE needs |
+| **JS Extensions** | ~4KB | Template & loading states | Existing htmx extension compatibility |
+
+### Release Downloads
+
+**Latest Stable Release:** [v0.1.0](https://github.com/waluenetwork/htmx/releases/tag/v0.1.0)
+
+```bash
+# Download production builds
+curl -L https://github.com/waluenetwork/htmx/releases/download/v0.1.0/htmx-wasm-production-v0.1.0.tar.gz -o htmx-wasm.tar.gz
+tar -xzf htmx-wasm.tar.gz
+```
+
+**Individual Downloads:**
+- [Single Bundle](https://github.com/waluenetwork/htmx/releases/download/v0.1.0/single-bundle.zip) - Complete WASM bundle with all extensions
+- [Minimal Bundle](https://github.com/waluenetwork/htmx/releases/download/v0.1.0/minimal.zip) - Core functionality only (≤15KB)
+- [Modular Extensions](https://github.com/waluenetwork/htmx/releases/download/v0.1.0/modular-extensions.zip) - WebSocket and SSE modules
+- [JS Extensions](https://github.com/waluenetwork/htmx/releases/download/v0.1.0/js-extensions.zip) - JavaScript bridge extensions
+
+### CDN Usage (Production)
+
+```html
+<!-- Single Bundle (Recommended) -->
+<script type="module">
+  import init, { HtmxWasm } from 'https://github.com/waluenetwork/htmx/releases/download/v0.1.0/single-bundle/htmx_wasm.js';
+  await init();
+  window.htmx = new HtmxWasm();
+</script>
+
+<!-- Minimal Bundle -->
+<script type="module">
+  import init, { HtmxCore } from 'https://github.com/waluenetwork/htmx/releases/download/v0.1.0/minimal/htmx_wasm.js';
+  await init();
+  window.htmx = new HtmxCore();
+</script>
+```
+
+---
+
+**Status**: ✅ Production Ready - Optimized builds available
 **Version**: 0.1.0
 **Compatibility**: htmx 1.9+ and 2.0+

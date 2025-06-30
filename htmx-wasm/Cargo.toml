@@ -9,10 +9,14 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = { version = "0.2", default-features = false }
 web-sys = { version = "0.3", default-features = false, features = [
-  "console", "Document", "Element", "Event", "EventTarget", "HtmlElement"
+  "console", "Document", "Element", "Event", "EventTarget", "HtmlElement",
+  "Window", "CustomEvent", "CustomEventInit", "HtmlFormElement", "FormData",
+  "XmlHttpRequest", "HtmlInputElement", "DocumentFragment", "NodeList",
+  "WebSocket", "MessageEvent", "CloseEvent", "ErrorEvent", "EventSource"
 ]}
 js-sys = { version = "0.3", default-features = false }
 wee_alloc = { version = "0.4", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 [profile.release]
 opt-level = "z"
@@ -25,6 +29,9 @@ strip = "symbols"
 opt-level = "z"
 
 [features]
-default = []
+default = ["websocket", "sse", "console_error_panic_hook"]
 wee_alloc = ["dep:wee_alloc"]
-ultra-minimal = []
+ultra-minimal = ["wee_alloc"]
+websocket = []
+sse = []
+console_error_panic_hook = ["dep:console_error_panic_hook"]

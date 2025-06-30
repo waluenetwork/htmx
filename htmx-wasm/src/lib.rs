@@ -38,6 +38,7 @@ pub struct HtmxWasm {
 impl HtmxWasm {
     #[wasm_bindgen(constructor)]
     pub fn new() -> HtmxWasm {
+        #[cfg(feature = "console_error_panic_hook")]
         console_error_panic_hook::set_once();
         
         HtmxWasm {
