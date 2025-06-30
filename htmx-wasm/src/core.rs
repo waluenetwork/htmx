@@ -1,8 +1,38 @@
 use wasm_bindgen::prelude::*;
-use web_sys::{Document, Element, Event, CustomEvent, CustomEventInit, Window};
+use web_sys::{Document, Element, Event, CustomEvent, CustomEventInit, Window, HtmlFormElement, FormData};
 
 pub struct HtmxCore {
-    config: HtmxConfig,
+    _config: HtmxConfig,
+    pending_requests: std::cell::RefCell<u32>,
+}
+
+#[wasm_bindgen]
+pub struct ElementConfig {
+    method: String,
+    url: String,
+    trigger: String,
+    swap: String,
+    target: String,
+}
+
+#[wasm_bindgen]
+impl ElementConfig {
+    #[wasm_bindgen(constructor)]
+    pub fn new(method: String, url: String, trigger: String, swap: String, target: String) -> ElementConfig {
+        ElementConfig {
+            method,
+            url,
+            trigger,
+            swap,
+            target,
+        }
+    }
+    
+    pub fn method(&self) -> String { self.method.clone() }
+    pub fn url(&self) -> String { self.url.clone() }
+    pub fn trigger(&self) -> String { self.trigger.clone() }
+    pub fn swap(&self) -> String { self.swap.clone() }
+    pub fn target(&self) -> String { self.target.clone() }
 }
 
 pub struct HtmxConfig {
@@ -26,7 +56,8 @@ impl Default for HtmxConfig {
 impl HtmxCore {
     pub fn new() -> Self {
         HtmxCore {
-            config: HtmxConfig::default(),
+            _config: HtmxConfig::default(),
+            pending_requests: std::cell::RefCell::new(0),
         }
     }
     
@@ -97,6 +128,69 @@ impl HtmxCore {
         Ok(())
     }
     
+    pub fn parse_element_config(&self, element: &Element) -> Result<ElementConfig, JsValue> {
+        let mut method = String::new();
+        let mut url = String::new();
+        
+        let verbs = ["get", "post", "put", "delete", "patch"];
+        for verb in &verbs {
+            let attr_name = format!("hx-{}", verb);
+            if let Some(attr_url) = element.get_attribute(&attr_name) {
+                method = verb.to_uppercase();
+                url = attr_url;
+                break;
+            }
+        }
+        
+        let trigger = element.get_attribute("hx-trigger").unwrap_or_else(|| {
+            match element.tag_name().as_str() {
+                "FORM" => "submit".to_string(),
+                "INPUT" | "TEXTAREA" | "SELECT" => "change".to_string(),
+                _ => "click".to_string(),
+            }
+        });
+        
+        let swap = element.get_attribute("hx-swap").unwrap_or_else(|| "innerHTML".to_string());
+        let target = element.get_attribute("hx-target").unwrap_or_else(|| "".to_string());
+        
+        Ok(ElementConfig {
+            method,
+            url,
+            trigger,
+            swap,
+            target,
+        })
+    }
+    
+    pub fn serialize_form(&self, form: &HtmlFormElement) -> Result<String, JsValue> {
+        let _form_data = FormData::new()?;
+        let mut result = Vec::new();
+        
+        let inputs = form.query_selector_all("input, textarea, select")?;
+        for i in 0..inputs.length() {
+            if let Some(node) = inputs.get(i) {
+                if let Ok(input) = node.dyn_into::<web_sys::HtmlInputElement>() {
+                    if let Some(name) = input.get_attribute("name") {
+                        let value = input.value();
+                        let encoded_name = js_sys::encode_uri_component(&name);
+                        let encoded_value = js_sys::encode_uri_component(&value);
+                        result.push(format!("{}={}", encoded_name, encoded_value));
+                    }
+                }
+            }
+        }
+        
+        Ok(result.join("&"))
+    }
+    
+    pub fn collect_form_data(&self, form: &HtmlFormElement) -> Result<FormData, JsValue> {
+        FormData::new_with_form(form)
+    }
+    
+    pub fn has_pending_requests(&self) -> bool {
+        *self.pending_requests.borrow() > 0
+    }
+    
     fn swap_content(element: &Element, content: &str) -> Result<(), JsValue> {
         let target = if let Some(target_selector) = element.get_attribute("hx-target") {
             HtmxCore::get_document()?.query_selector(&target_selector)?.unwrap_or_else(|| element.clone())
@@ -120,7 +214,7 @@ impl HtmxCore {
     }
     
     pub fn trigger_event(&self, element: &Element, event_name: &str, detail: &JsValue) -> Result<(), JsValue> {
-        let mut event_init = CustomEventInit::new();
+        let event_init = CustomEventInit::new();
         event_init.set_detail(detail);
         
         let event = CustomEvent::new_with_event_init_dict(event_name, &event_init)?;
@@ -161,7 +255,7 @@ impl HtmxCore {
         window.document().ok_or_else(|| JsValue::from_str("Should have a document on window"))
     }
     
-    fn get_window() -> Result<Window, JsValue> {
+    fn _get_window() -> Result<Window, JsValue> {
         web_sys::window().ok_or_else(|| JsValue::from_str("No global window exists"))
     }
 }

@@ -5,16 +5,16 @@ use super::{HtmxExtension, HtmxApi};
 
 pub struct WebSocketExtension {
     connections: HashMap<String, WebSocket>,
-    reconnect_delays: HashMap<String, u32>,
-    message_queues: HashMap<String, Vec<String>>,
+    _reconnect_delays: HashMap<String, u32>,
+    _message_queues: HashMap<String, Vec<String>>,
 }
 
 impl WebSocketExtension {
     pub fn new() -> Self {
         WebSocketExtension {
             connections: HashMap::new(),
-            reconnect_delays: HashMap::new(),
-            message_queues: HashMap::new(),
+            _reconnect_delays: HashMap::new(),
+            _message_queues: HashMap::new(),
         }
     }
     
@@ -116,11 +116,11 @@ impl HtmxExtension for WebSocketExtension {
         Ok(false)
     }
     
-    fn transform_response(&self, text: &str, element: &Element) -> Result<String, JsValue> {
+    fn transform_response(&self, text: &str, _element: &Element) -> Result<String, JsValue> {
         Ok(text.to_string())
     }
     
-    fn handle_swap(&self, swap_style: &str, target: &Element, fragment: &DocumentFragment) -> Result<bool, JsValue> {
+    fn handle_swap(&self, _swap_style: &str, _target: &Element, _fragment: &DocumentFragment) -> Result<bool, JsValue> {
         Ok(false)
     }
 }

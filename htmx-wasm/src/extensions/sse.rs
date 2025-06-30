@@ -5,14 +5,14 @@ use super::{HtmxExtension, HtmxApi};
 
 pub struct SSEExtension {
     event_sources: HashMap<String, EventSource>,
-    reconnect_delays: HashMap<String, u32>,
+    _reconnect_delays: HashMap<String, u32>,
 }
 
 impl SSEExtension {
     pub fn new() -> Self {
         SSEExtension {
             event_sources: HashMap::new(),
-            reconnect_delays: HashMap::new(),
+            _reconnect_delays: HashMap::new(),
         }
     }
     
@@ -71,7 +71,7 @@ impl SSEExtension {
         Ok(())
     }
     
-    fn setup_custom_event_listeners(&self, element: &Element, event_source: &EventSource) -> Result<(), JsValue> {
+    fn _setup_custom_event_listeners(&self, element: &Element, event_source: &EventSource) -> Result<(), JsValue> {
         let sse_swap = element.get_attribute("sse-swap");
         if let Some(events) = sse_swap {
             for event_name in events.split(',') {
@@ -113,7 +113,7 @@ impl HtmxExtension for SSEExtension {
         Ok(())
     }
     
-    fn on_event(&mut self, event: &str, element: &Element, detail: &JsValue) -> Result<bool, JsValue> {
+    fn on_event(&mut self, event: &str, element: &Element, _detail: &JsValue) -> Result<bool, JsValue> {
         match event {
             "htmx:load" => {
                 if let Some(url) = element.get_attribute("sse-connect") {
@@ -127,11 +127,11 @@ impl HtmxExtension for SSEExtension {
         }
     }
     
-    fn transform_response(&self, text: &str, element: &Element) -> Result<String, JsValue> {
+    fn transform_response(&self, text: &str, _element: &Element) -> Result<String, JsValue> {
         Ok(text.to_string())
     }
     
-    fn handle_swap(&self, swap_style: &str, target: &Element, fragment: &DocumentFragment) -> Result<bool, JsValue> {
+    fn handle_swap(&self, _swap_style: &str, _target: &Element, _fragment: &DocumentFragment) -> Result<bool, JsValue> {
         Ok(false)
     }
 }

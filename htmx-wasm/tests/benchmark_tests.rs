@@ -24,7 +24,7 @@ fn benchmark_wasm_vs_js_initialization() {
 
 #[wasm_bindgen_test]
 fn benchmark_element_processing() {
-    let htmx = htmx_wasm::HtmxWasm::new();
+    let mut htmx = htmx_wasm::HtmxWasm::new();
     
     let window = window().unwrap();
     let document = window.document().unwrap();
@@ -67,7 +67,7 @@ fn benchmark_extension_loading() {
 
 #[wasm_bindgen_test]
 fn benchmark_dom_queries() {
-    let htmx = htmx_wasm::HtmxWasm::new();
+    let mut htmx = htmx_wasm::HtmxWasm::new();
     
     let start_time = now();
     
@@ -84,7 +84,7 @@ fn benchmark_dom_queries() {
 
 #[wasm_bindgen_test]
 fn benchmark_event_triggering() {
-    let htmx = htmx_wasm::HtmxWasm::new();
+    let mut htmx = htmx_wasm::HtmxWasm::new();
     
     let window = window().unwrap();
     let document = window.document().unwrap();

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTMX WASM Browser Test Runner</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .test-result { margin: 10px 0; padding: 10px; }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        .pending { background-color: #fff3cd; color: #856404; }
+        #results { margin-top: 20px; }
+        button { margin: 5px; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h1>HTMX WASM Comprehensive Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="runCoreTests()">Core Tests Only</button>
+        <button onclick="runExtensionTests()">Extension Tests</button>
+        <button onclick="runPerformanceTests()">Performance Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Bundle Size Analysis</h2>
+        <div id="bundle-analysis">
+            <p>Loading bundle size information...</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+    
+    <!-- Test containers for DOM manipulation -->
+    <div id="test-container" style="display: none;"></div>
+    
+    <script type="module">
+        import init, { HtmxWasm } from './pkg/htmx_wasm.js';
+        
+        let htmxWasm = null;
+        let testResults = [];
+        
+        // Initialize WASM module
+        async function initializeWasm() {
+            try {
+                await init();
+                htmxWasm = new HtmxWasm();
+                console.log('HTMX WASM initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize HTMX WASM:', error);
+                return false;
+            }
+        }
+        
+        // Test utilities
+        function addTestResult(testName, passed, message = '') {
+            const result = {
+                name: testName,
+                passed: passed,
+                message: message,
+                timestamp: new Date().toISOString()
+            };
+            testResults.push(result);
+            displayTestResult(result);
+        }
+        
+        function displayTestResult(result) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${result.passed ? 'pass' : 'fail'}`;
+            resultDiv.innerHTML = `
+                <strong>${result.name}</strong>: ${result.passed ? 'PASS' : 'FAIL'}
+                ${result.message ? `<br><small>${result.message}</small>` : ''}
+                <br><small>${result.timestamp}</small>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        function clearResults() {
+            testResults = [];
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Core functionality tests
+        async function runCoreTests() {
+            console.log('Running core tests...');
+            
+            // Test 1: WASM initialization
+            try {
+                const initialized = htmxWasm && htmxWasm.is_initialized();
+                addTestResult('WASM Initialization', initialized, 'HTMX WASM module loaded and initialized');
+            } catch (error) {
+                addTestResult('WASM Initialization', false, error.message);
+            }
+            
+            // Test 2: Element processing
+            try {
+                const testElement = document.createElement('button');
+                testElement.setAttribute('hx-get', '/api/test');
+                testElement.setAttribute('hx-target', '#result');
+                
+                const result = htmxWasm.process_element(testElement);
+                addTestResult('Element Processing', true, 'Successfully processed hx-get element');
+            } catch (error) {
+                addTestResult('Element Processing', false, error.message);
+            }
+            
+            // Test 3: Element config parsing
+            try {
+                const testElement = document.createElement('form');
+                testElement.setAttribute('hx-post', '/api/submit');
+                testElement.setAttribute('hx-trigger', 'submit');
+                testElement.setAttribute('hx-swap', 'innerHTML');
+                
+                const config = htmxWasm.parse_element_config(testElement);
+                const isValid = config.method() === 'POST' && 
+                               config.url() === '/api/submit' &&
+                               config.trigger() === 'submit' &&
+                               config.swap() === 'innerHTML';
+                
+                addTestResult('Config Parsing', isValid, `Method: ${config.method()}, URL: ${config.url()}`);
+            } catch (error) {
+                addTestResult('Config Parsing', false, error.message);
+            }
+            
+            // Test 4: Form serialization
+            try {
+                const form = document.createElement('form');
+                const input1 = document.createElement('input');
+                input1.name = 'username';
+                input1.value = 'testuser';
+                const input2 = document.createElement('input');
+                input2.name = 'email';
+                input2.value = 'test@example.com';
+                
+                form.appendChild(input1);
+                form.appendChild(input2);
+                
+                const serialized = htmxWasm.serialize_form(form);
+                const isValid = serialized.includes('username=testuser') && 
+                               serialized.includes('email=test%40example.com');
+                
+                addTestResult('Form Serialization', isValid, `Serialized: ${serialized}`);
+            } catch (error) {
+                addTestResult('Form Serialization', false, error.message);
+            }
+            
+            // Test 5: DOM utilities
+            try {
+                const testDiv = document.createElement('div');
+                testDiv.id = 'test-find';
+                testDiv.className = 'test-class';
+                document.body.appendChild(testDiv);
+                
+                const foundById = htmxWasm.find('#test-find');
+                const foundByClass = htmxWasm.find_all('.test-class');
+                
+                const isValid = foundById !== null && foundByClass.length > 0;
+                addTestResult('DOM Utilities', isValid, `Found by ID: ${foundById !== null}, Found by class: ${foundByClass.length}`);
+                
+                document.body.removeChild(testDiv);
+            } catch (error) {
+                addTestResult('DOM Utilities', false, error.message);
+            }
+        }
+        
+        // Extension tests
+        async function runExtensionTests() {
+            console.log('Running extension tests...');
+            
+            // Test 1: WebSocket extension
+            try {
+                const result = htmxWasm.enable_extension('ws');
+                const isEnabled = htmxWasm.is_extension_enabled('ws');
+                addTestResult('WebSocket Extension', isEnabled, 'WebSocket extension enabled successfully');
+            } catch (error) {
+                addTestResult('WebSocket Extension', false, error.message);
+            }
+            
+            // Test 2: SSE extension
+            try {
+                const result = htmxWasm.enable_extension('sse');
+                const isEnabled = htmxWasm.is_extension_enabled('sse');
+                addTestResult('SSE Extension', isEnabled, 'SSE extension enabled successfully');
+            } catch (error) {
+                addTestResult('SSE Extension', false, error.message);
+            }
+            
+            // Test 3: JavaScript extension registration
+            try {
+                const jsExt = {
+                    name: 'test-js-extension',
+                    init: function(api) { console.log('JS extension initialized'); },
+                    transformResponse: function(text) { return text.toUpperCase(); }
+                };
+                
+                htmxWasm.register_js_extension('test-js', jsExt);
+                const hasExtension = htmxWasm.has_js_extension('test-js');
+                addTestResult('JS Extension Registration', hasExtension, 'JavaScript extension registered successfully');
+            } catch (error) {
+                addTestResult('JS Extension Registration', false, error.message);
+            }
+            
+            // Test 4: Extension hook calling
+            try {
+                const result = htmxWasm.call_js_extension_hook('test-js', 'transformResponse', 'hello world');
+                addTestResult('JS Extension Hooks', true, 'Extension hook called successfully');
+            } catch (error) {
+                addTestResult('JS Extension Hooks', false, error.message);
+            }
+        }
+        
+        // Performance tests
+        async function runPerformanceTests() {
+            console.log('Running performance tests...');
+            
+            // Test 1: Element processing performance
+            try {
+                const startTime = performance.now();
+                const iterations = 1000;
+                
+                for (let i = 0; i < iterations; i++) {
+                    const element = document.createElement('div');
+                    element.setAttribute('hx-get', `/api/test-${i}`);
+                    htmxWasm.process_element(element);
+                }
+                
+                const endTime = performance.now();
+                const avgTime = (endTime - startTime) / iterations;
+                const passed = avgTime < 1.0; // Less than 1ms per element
+                
+                addTestResult('Element Processing Performance', passed, 
+                    `Average: ${avgTime.toFixed(3)}ms per element (${iterations} elements)`);
+            } catch (error) {
+                addTestResult('Element Processing Performance', false, error.message);
+            }
+            
+            // Test 2: Extension loading performance
+            try {
+                const startTime = performance.now();
+                
+                htmxWasm.enable_extension('ws');
+                htmxWasm.enable_extension('sse');
+                
+                const endTime = performance.now();
+                const totalTime = endTime - startTime;
+                const passed = totalTime < 50; // Less than 50ms
+                
+                addTestResult('Extension Loading Performance', passed, 
+                    `Total time: ${totalTime.toFixed(3)}ms`);
+            } catch (error) {
+                addTestResult('Extension Loading Performance', false, error.message);
+            }
+            
+            // Test 3: Memory usage estimation
+            try {
+                const beforeMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+                
+                // Create many elements to test memory usage
+                const elements = [];
+                for (let i = 0; i < 100; i++) {
+                    const element = document.createElement('div');
+                    element.setAttribute('hx-get', `/api/test-${i}`);
+                    htmxWasm.process_element(element);
+                    elements.push(element);
+                }
+                
+                const afterMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+                const memoryIncrease = afterMemory - beforeMemory;
+                const passed = memoryIncrease < 1024 * 1024; // Less than 1MB increase
+                
+                addTestResult('Memory Usage', passed, 
+                    `Memory increase: ${(memoryIncrease / 1024).toFixed(2)}KB`);
+            } catch (error) {
+                addTestResult('Memory Usage', false, error.message);
+            }
+        }
+        
+        // Bundle size analysis
+        async function analyzeBundleSize() {
+            try {
+                const response = await fetch('./pkg/htmx_wasm_bg.wasm');
+                const wasmSize = response.headers.get('content-length') || 'Unknown';
+                
+                const jsResponse = await fetch('./pkg/htmx_wasm.js');
+                const jsSize = jsResponse.headers.get('content-length') || 'Unknown';
+                
+                document.getElementById('bundle-analysis').innerHTML = `
+                    <p><strong>WASM Bundle:</strong> ${wasmSize} bytes</p>
+                    <p><strong>JS Bundle:</strong> ${jsSize} bytes</p>
+                    <p><strong>Target:</strong> ≤15KB total</p>
+                    <p><strong>Status:</strong> ${parseInt(wasmSize) + parseInt(jsSize) <= 15360 ? '✅ Within target' : '❌ Over target'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('bundle-analysis').innerHTML = `
+                    <p>Error analyzing bundle size: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Main test runner functions
+        window.runAllTests = async function() {
+            clearResults();
+            addTestResult('Test Suite Started', true, 'Running comprehensive test suite...');
+            
+            await runCoreTests();
+            await runExtensionTests();
+            await runPerformanceTests();
+            
+            const totalTests = testResults.length - 1; // Exclude the "started" message
+            const passedTests = testResults.filter(r => r.passed && r.name !== 'Test Suite Started').length;
+            
+            addTestResult('Test Suite Complete', true, 
+                `${passedTests}/${totalTests} tests passed (${((passedTests/totalTests)*100).toFixed(1)}%)`);
+        };
+        
+        window.runCoreTests = runCoreTests;
+        window.runExtensionTests = runExtensionTests;
+        window.runPerformanceTests = runPerformanceTests;
+        window.clearResults = clearResults;
+        
+        // Initialize on page load
+        window.addEventListener('load', async () => {
+            const initialized = await initializeWasm();
+            if (initialized) {
+                await analyzeBundleSize();
+                addTestResult('System Ready', true, 'HTMX WASM test environment initialized');
+            } else {
+                addTestResult('System Ready', false, 'Failed to initialize HTMX WASM');
+            }
+        });
+    </script>
+</body>
+</html>
