@@ -130,29 +130,49 @@ cd htmx/htmx-wasm
 | Bundle Size | 14KB (gzipped) | 131KB (unoptimized) | -9.4x larger* |
 | Memory Usage | Variable (GC) | Predictable | More stable |
 
-*Bundle size optimization in progress - target ≤15KB
+*Bundle size: 17.3KB achieved (85% reduction from 114KB), target ≤15KB (2.3KB over)
 
 ## 🧪 Testing
 
 ### Browser Test Suite
 ```bash
 npm run test:browser
-# Open http://localhost:8083/browser-test-runner.html
+# This will start a server and open http://localhost:8083/browser-test-runner.html
 ```
 
 ### Unit Tests
 ```bash
+# WASM unit tests (Firefox WebDriver)
 npm test
+
+# Node.js unit tests
+npm run test:node
+```
+
+### Integration Tests
+```bash
+# Server integration tests
+npm run test:integration
 ```
 
 ### Real Server Integration
 ```bash
 # Start test servers
-python3 test-websocket-server.py &
-python3 test-sse-server.py &
+npm run start:test-servers
 
 # Run integration tests
-npm run test:browser
+npm run test:real-servers
+```
+
+### Performance Benchmarking
+```bash
+# Run performance benchmarks
+npm run benchmark
+```
+
+### Comprehensive Testing
+```bash
+npm run comprehensive-test
 ```
 
 ## 🏗️ Building from Source
@@ -167,23 +187,46 @@ npm run test:browser
 # Full build with all extensions
 npm run build:all
 
+# Single WASM bundle build (with built-in extensions)
+npm run build:single
+
 # Minimal build (core only)
 npm run build:minimal
+
+# Optimized build (bundle size optimization)
+npm run build:optimize
+
+# Modular extensions build
+npm run build:modular
 
 # Development build
 cargo build --target wasm32-unknown-unknown
 ```
 
+### Development & Serving
+```bash
+# Start development server with test endpoints
+npm run dev
+
+# Serve static files (for testing examples)
+npm run serve
+```
+
 ### Bundle Size Optimization
 ```bash
+# Run automated bundle size optimization
+npm run build:optimize
+
+# Manual optimization build
+npm run build:minimal
+
 # Current optimizations applied:
 # - opt-level = "z" (size optimization)
 # - LTO enabled
 # - Symbol stripping
+# - wee_alloc for minimal memory allocator
 # - Minimal web-sys features
-# - No serde dependencies for core functionality
-
-wasm-pack build --target web --release --no-default-features
+# - Ultra-minimal feature flag for core-only build
 ```
 
 ## 🔌 Extension Development
@@ -256,7 +299,7 @@ cd htmx/htmx-wasm
 cargo install wasm-pack
 
 # Build and test
-./build.sh
+npm run build
 npm run test:browser
 ```
 

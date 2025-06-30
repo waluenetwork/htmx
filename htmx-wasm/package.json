@@ -13,14 +13,21 @@
   ],
   "scripts": {
     "build": "./build.sh",
+    "build:all": "./build.sh",
     "build:single": "wasm-pack build --target web --features all-extensions",
+    "build:minimal": "wasm-pack build --target web --release --no-default-features --features ultra-minimal",
     "build:modular": "cd extensions/websocket-module && wasm-pack build --target web && cd ../sse-module && wasm-pack build --target web",
+    "build:optimize": "./optimize-bundle-size.sh",
     "test": "wasm-pack test --headless --firefox",
     "test:node": "wasm-pack test --node",
+    "test:browser": "python3 -m http.server 8083 & sleep 2 && echo 'Open http://localhost:8083/browser-test-runner.html in your browser'",
     "test:integration": "python3 tests/server_integration_tests.py",
+    "test:real-servers": "python3 tests/real_server_integration.py",
     "benchmark": "python3 tests/performance_benchmarks.py",
     "serve": "python3 -m http.server 8080",
-    "dev": "python3 test-server.py"
+    "dev": "python3 test-server.py",
+    "start:test-servers": "python3 test-websocket-server-dynamic.py & python3 test-sse-server-dynamic.py &",
+    "comprehensive-test": "python3 run-comprehensive-tests.py"
   },
   "keywords": [
     "htmx",
